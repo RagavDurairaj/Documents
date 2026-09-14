@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>CYBER-VAULT // Universal Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CYBER-VAULT // HyperTech Interface</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
@@ -11,36 +11,29 @@
   <style>
     :root {
       --canvas: #030712;
-      --panel: rgba(11, 19, 43, 0.88);
+      --panel: rgba(11, 19, 43, 0.85);
       --panel-border: rgba(0, 240, 255, 0.2);
       --cyan: #00f0ff;
       --cyan-dim: rgba(0, 240, 255, 0.12);
       --magenta: #ff0055;
-      --magenta-dim: rgba(255, 0, 85, 0.15);
+      --magenta-dim: rgba(255, 0, 85, 0.12);
       --text: #f0fdfa;
-      --text-muted: #94a3b8;
+      --text-muted: #64748b;
       --wireframe: rgba(0, 240, 255, 0.03);
     }
 
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-      -webkit-tap-highlight-color: transparent; 
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      height: 100dvh; /* Dynamic viewport accounts for mobile address bar */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
       background: var(--canvas);
       color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
+      min-height: 100vh;
+      display: flex;
       overflow: hidden;
       position: relative;
     }
 
-    /* Ambient Background Grid */
+    /* Cybernetic Grid Backdrop */
     body::before {
       content: "";
       position: fixed;
@@ -48,56 +41,59 @@
       background-image: 
         linear-gradient(var(--wireframe) 1px, transparent 1px),
         linear-gradient(90deg, var(--wireframe) 1px, transparent 1px);
-      background-size: 28px 28px;
+      background-size: 32px 32px;
       pointer-events: none;
       z-index: 0;
     }
 
+    /* Noise/Scanline Overlays */
     .scanlines {
       position: fixed;
       inset: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
       background-size: 100% 4px;
       pointer-events: none;
-      z-index: 90;
-      opacity: 0.5;
+      z-index: 100;
+      opacity: 0.6;
     }
 
-    /* Universal Flex Shell */
-    .app-shell {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      position: relative;
-      z-index: 10;
-    }
-
-    /* Custom Slim Scrollbars */
+    /* Ultra-Slim Custom Modern Scrollbar */
     .custom-scroll::-webkit-scrollbar {
       width: 4px;
       height: 4px;
     }
     .custom-scroll::-webkit-scrollbar-track {
       background: rgba(0, 240, 255, 0.02);
+      border-radius: 4px;
     }
     .custom-scroll::-webkit-scrollbar-thumb {
       background: linear-gradient(180deg, var(--cyan) 0%, var(--magenta) 100%);
       border-radius: 4px;
+      box-shadow: 0 0 10px var(--cyan);
     }
 
-    /* Desktop Sidebar */
-    .sidebar {
+    /* Sidebar Drawer Backdrop for Mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 40;
+    }
+
+    /* Left Control Sidebar */
+    .terminal-sidebar {
       width: 320px;
-      max-width: 85vw;
       background: var(--panel);
       border-right: 1px solid var(--panel-border);
       backdrop-filter: blur(20px);
+      padding: 24px 20px;
       display: flex;
       flex-direction: column;
-      padding: clamp(16px, 2.5vw, 24px);
-      gap: 16px;
+      gap: 20px;
+      z-index: 50;
       flex-shrink: 0;
-      z-index: 100;
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -105,34 +101,34 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 16px;
+      padding-bottom: 20px;
       border-bottom: 1px dashed var(--panel-border);
     }
-    .brand-hud-main {
+    .brand-hud-left {
       display: flex;
       align-items: center;
       gap: 12px;
     }
     .brand-hud img {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 8px;
       border: 1px solid var(--cyan);
-      box-shadow: 0 0 10px var(--cyan-dim);
+      box-shadow: 0 0 12px var(--cyan-dim);
       object-fit: cover;
     }
     .brand-title {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
-      font-size: 1.1rem;
-      letter-spacing: 0.5px;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
       color: #fff;
     }
     .brand-status {
-      font-size: 0.62rem;
+      font-size: 0.65rem;
       color: var(--cyan);
       text-transform: uppercase;
-      letter-spacing: 1.5px;
+      letter-spacing: 2px;
     }
 
     .close-drawer-btn {
@@ -141,22 +137,22 @@
       border: none;
       color: var(--cyan);
       cursor: pointer;
-      padding: 6px;
+      padding: 4px;
     }
 
     .sys-actions {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .btn-tech {
       background: rgba(0, 240, 255, 0.05);
       border: 1px solid var(--cyan);
       color: var(--cyan);
-      padding: 12px 14px;
+      padding: 12px 16px;
       border-radius: 4px;
-      font-family: inherit;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 1px;
@@ -165,54 +161,55 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: all 0.2s ease;
-      min-height: 44px; /* Mobile touch guideline */
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
     }
-    .btn-tech:hover, .btn-tech:active {
+    .btn-tech:hover {
       background: var(--cyan);
       color: var(--canvas);
-      box-shadow: 0 0 16px var(--cyan);
+      box-shadow: 0 0 20px var(--cyan);
+      transform: translateY(-1px);
     }
 
     .btn-tech-subtle {
       border-color: var(--panel-border);
       color: var(--text);
     }
-    .btn-tech-subtle:hover, .btn-tech-subtle:active {
+    .btn-tech-subtle:hover {
       background: var(--magenta);
       border-color: var(--magenta);
       color: #fff;
-      box-shadow: 0 0 16px var(--magenta);
+      box-shadow: 0 0 20px var(--magenta);
     }
 
     .meta-label {
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--text-muted);
-      margin-top: 4px;
+      margin-top: 8px;
     }
 
     .folder-shelf {
-      flex: 1;
       display: flex;
       flex-direction: column;
       gap: 6px;
       overflow-y: auto;
+      max-height: calc(100vh - 350px);
       padding-right: 4px;
     }
     .dir-pill {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 12px;
+      padding: 12px;
       border-radius: 4px;
       cursor: pointer;
       color: var(--text-muted);
       font-size: 0.82rem;
       border-left: 2px solid transparent;
-      min-height: 40px;
       transition: all 0.15s ease;
     }
     .dir-pill:hover, .dir-pill:active {
@@ -221,67 +218,62 @@
       color: #fff;
     }
 
-    /* Main Viewport */
+    /* Main Operating Area */
     .viewport {
       flex: 1;
+      padding: 32px 40px;
       display: flex;
       flex-direction: column;
-      padding: clamp(14px, 2.5vw, 28px);
-      padding-top: max(14px, env(safe-area-inset-top));
-      padding-bottom: max(14px, env(safe-area-inset-bottom));
-      min-width: 0; /* Prevents flex children from stretching parent */
-      height: 100%;
+      z-index: 1;
+      height: 100vh;
+      width: 100%;
     }
 
     /* Mobile Header Bar */
-    .mobile-nav-bar {
+    .mobile-header {
       display: none;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
-      padding-bottom: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--panel-border);
-      flex-shrink: 0;
     }
-    .mobile-nav-title {
+    .mobile-brand {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .mobile-nav-title img {
+    .mobile-brand img {
       width: 28px;
       height: 28px;
       border-radius: 4px;
       border: 1px solid var(--cyan);
-      object-fit: cover;
     }
 
     .top-telemetry {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
       border-bottom: 1px solid var(--panel-border);
       gap: 12px;
-      flex-shrink: 0;
     }
 
     .path-stack {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       overflow-x: auto;
       white-space: nowrap;
-      min-width: 0;
-      padding-bottom: 2px;
+      padding-bottom: 4px;
     }
     .path-token {
       color: var(--cyan);
       cursor: pointer;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
     .path-token.active {
       color: #fff;
@@ -301,100 +293,108 @@
       background: transparent;
       border: 1px solid var(--panel-border);
       color: var(--cyan);
-      padding: 8px 12px;
+      padding: 8px 14px;
       border-radius: 4px;
       font-family: inherit;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 700;
       letter-spacing: 1px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
-      min-height: 38px;
       transition: 0.2s;
     }
     .icon-ctrl:hover:not(:disabled) {
       border-color: var(--cyan);
       background: var(--cyan-dim);
+      box-shadow: 0 0 10px var(--cyan-dim);
     }
     .icon-ctrl:disabled {
-      opacity: 0.25;
+      opacity: 0.2;
       cursor: not-allowed;
     }
 
-    /* Responsive File Container */
+    /* Files Container with Fluid Scroll */
     .file-stream-container {
       flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-right: 4px;
-      -webkit-overflow-scrolling: touch;
+      overflow-y: scroll;
+      padding-right: 12px;
+      padding-bottom: 40px;
     }
 
     .stream-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: clamp(12px, 2vw, 20px);
-      padding-bottom: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
     }
 
     .data-card {
       background: var(--panel);
       border: 1px solid var(--panel-border);
       border-radius: 6px;
-      padding: clamp(14px, 2vw, 18px);
+      padding: 20px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       backdrop-filter: blur(8px);
       position: relative;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .data-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 6px;
+      border-top: 1px solid var(--cyan);
+      border-left: 1px solid var(--cyan);
     }
     .data-card:hover {
       border-color: var(--cyan);
       transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0, 240, 255, 0.08);
+      box-shadow: 0 6px 20px rgba(0, 240, 255, 0.08);
     }
 
     .date-timestamp {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.68rem;
+      font-size: 0.7rem;
       color: var(--cyan);
       background: var(--cyan-dim);
       padding: 3px 8px;
       border-radius: 2px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
     }
 
     .type-glyph {
-      font-size: 1.3rem;
-      margin-bottom: 6px;
+      font-size: 1.4rem;
+      margin-bottom: 8px;
     }
 
     .file-label {
       font-family: 'Syne', sans-serif;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: #fff;
       margin-bottom: 4px;
-      word-break: break-word;
-      line-height: 1.3;
+      word-break: break-all;
     }
 
     .file-specs {
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .dock-actions {
       display: flex;
       gap: 8px;
       border-top: 1px dashed var(--panel-border);
-      padding-top: 10px;
+      padding-top: 12px;
     }
 
     .dock-link {
@@ -403,13 +403,9 @@
       text-decoration: none;
       font-size: 0.72rem;
       font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 8px 0;
+      letter-spacing: 1px;
+      padding: 10px 0;
       border-radius: 2px;
-      min-height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       text-transform: uppercase;
       transition: 0.15s;
     }
@@ -417,7 +413,7 @@
       border: 1px solid var(--panel-border);
       color: var(--text-muted);
     }
-    .dock-view:hover, .dock-view:active {
+    .dock-view:hover {
       border-color: var(--text);
       color: #fff;
     }
@@ -426,37 +422,38 @@
       border: 1px solid var(--cyan);
       color: var(--cyan);
     }
-    .dock-download:hover, .dock-download:active {
+    .dock-download:hover {
       background: var(--cyan);
       color: var(--canvas);
     }
 
+    /* Diagnostics Loading / Empty */
     .empty-state {
       grid-column: 1 / -1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 60px 16px;
+      padding: 80px 0;
       color: var(--text-muted);
       gap: 16px;
       text-align: center;
     }
     .cyber-loader {
-      width: 55px;
-      height: 55px;
+      width: 60px;
+      height: 60px;
       border-radius: 12px;
       border: 1px solid var(--cyan);
-      box-shadow: 0 0 16px var(--cyan-dim);
+      box-shadow: 0 0 20px var(--cyan-dim);
     }
 
-    /* Modal System */
+    /* Overlay Modals */
     .modal-backdrop {
       display: none;
       position: fixed;
       inset: 0;
       background: rgba(3, 7, 18, 0.85);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       align-items: center;
       justify-content: center;
       z-index: 200;
@@ -470,85 +467,95 @@
       border-radius: 4px;
       width: 100%;
       max-width: 440px;
-      padding: clamp(18px, 3vw, 24px);
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+      gap: 18px;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
     }
+
     .modal-header {
       font-family: 'Syne', sans-serif;
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--cyan);
+      letter-spacing: 1px;
     }
+
     .hud-input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-radius: 4px;
       border: 1px solid var(--panel-border);
       background: rgba(255, 255, 255, 0.02);
       color: var(--text);
-      font-family: inherit;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 0.85rem;
       outline: none;
-      min-height: 44px;
     }
     .hud-input:focus {
       border-color: var(--cyan);
-    }
-
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(3, 7, 18, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 95;
+      box-shadow: 0 0 10px var(--cyan-dim);
     }
 
     /* ========================================================
-       MOBILE BREAKPOINT (< 768px)
+       RESPONSIVE MOBILE BREAKPOINTS (< 868px)
        ======================================================== */
-    @media (max-width: 768px) {
-      .sidebar {
+    @media (max-width: 868px) {
+      .sidebar-overlay.active {
+        display: block;
+      }
+
+      .terminal-sidebar {
         position: fixed;
         top: 0;
         bottom: 0;
         left: 0;
-        height: 100%;
+        width: 82%;
+        max-width: 320px;
         transform: translateX(-100%);
-        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.9);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
       }
-      .sidebar.open {
+
+      .terminal-sidebar.open {
         transform: translateX(0);
       }
-      .sidebar-overlay.active {
-        display: block;
-      }
+
       .close-drawer-btn {
-        display: block;
-      }
-      .mobile-nav-bar {
         display: flex;
       }
+
+      .mobile-header {
+        display: flex;
+      }
+
+      .viewport {
+        padding: 16px 14px;
+      }
+
       .top-telemetry {
         flex-direction: column;
         align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
       }
+
       .ctrl-group {
-        width: 100%;
+        justify-content: space-between;
       }
+
       .ctrl-group .icon-ctrl {
         flex: 1;
         justify-content: center;
       }
+
       .stream-grid {
         grid-template-columns: 1fr;
+        gap: 14px;
       }
-      .modal-frame {
-        max-height: 90dvh;
-        overflow-y: auto;
+
+      .file-stream-container {
+        padding-right: 2px;
       }
     }
   </style>
@@ -558,73 +565,67 @@
 
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-  <div class="app-shell">
-    <!-- Drawer / Sidebar -->
-    <aside class="sidebar" id="terminalSidebar">
-      <div class="brand-hud">
-        <div class="brand-hud-main">
-          <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
-          <div>
-            <div class="brand-title">CYBER//DOCS</div>
-            <div class="brand-status">NODE SECURE 2026.1</div>
-          </div>
+  <aside class="terminal-sidebar" id="terminalSidebar">
+    <div class="brand-hud">
+      <div class="brand-hud-left">
+        <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
+        <div>
+          <div class="brand-title">CYBER//DOCS</div>
+          <div class="brand-status">NODE SECURE 2026.1</div>
         </div>
-        <button class="close-drawer-btn" onclick="toggleSidebar()" aria-label="Close drawer">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </div>
+      <button class="close-drawer-btn" onclick="toggleSidebar()" aria-label="Close Terminal Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="sys-actions">
+      <button class="btn-tech" onclick="openModal('uploadModal'); closeSidebar();">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        PUSH PROTOCOL
+      </button>
+      <button class="btn-tech btn-tech-subtle" onclick="openModal('folderModal'); closeSidebar();">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        MAKE DIRECTORY
+      </button>
+    </div>
+
+    <div class="meta-label">// DIRECTORY MAPPING</div>
+    <div id="folderList" class="folder-shelf custom-scroll"></div>
+  </aside>
+
+  <main class="viewport">
+    <div class="mobile-header">
+      <div class="mobile-brand">
+        <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
+        <span style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: #fff;">CYBER//DOCS</span>
+      </div>
+      <button class="icon-ctrl" onclick="toggleSidebar()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        SYS MENU
+      </button>
+    </div>
+
+    <header class="top-telemetry">
+      <nav class="path-stack custom-scroll" id="breadcrumbTrail"></nav>
+
+      <div class="ctrl-group">
+        <button class="icon-ctrl" id="btnBack" onclick="navigateBack()" disabled>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          PARENT DIR
+        </button>
+        <button class="icon-ctrl" onclick="refreshCurrentFolder()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          SYNC
         </button>
       </div>
+    </header>
 
-      <div class="sys-actions">
-        <button class="btn-tech" onclick="openModal('uploadModal'); closeSidebar();">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          PUSH PROTOCOL
-        </button>
-        <button class="btn-tech btn-tech-subtle" onclick="openModal('folderModal'); closeSidebar();">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          MAKE DIRECTORY
-        </button>
-      </div>
+    <section class="file-stream-container custom-scroll">
+      <div id="fileGrid" class="stream-grid"></div>
+    </section>
+  </main>
 
-      <div class="meta-label">// DIRECTORY MAPPING</div>
-      <div id="folderList" class="folder-shelf custom-scroll"></div>
-    </aside>
-
-    <!-- Main Workspace -->
-    <main class="viewport">
-      <!-- Top Nav for Mobile Screens -->
-      <div class="mobile-nav-bar">
-        <div class="mobile-nav-title">
-          <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
-          <span style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: #fff;">CYBER//DOCS</span>
-        </div>
-        <button class="icon-ctrl" onclick="toggleSidebar()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          DIRECTORIES
-        </button>
-      </div>
-
-      <header class="top-telemetry">
-        <nav class="path-stack custom-scroll" id="breadcrumbTrail"></nav>
-
-        <div class="ctrl-group">
-          <button class="icon-ctrl" id="btnBack" onclick="navigateBack()" disabled>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            PARENT DIR
-          </button>
-          <button class="icon-ctrl" onclick="refreshCurrentFolder()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-            SYNC
-          </button>
-        </div>
-      </header>
-
-      <section class="file-stream-container custom-scroll">
-        <div id="fileGrid" class="stream-grid"></div>
-      </section>
-    </main>
-  </div>
-
-  <!-- Upload Modal -->
   <div class="modal-backdrop" id="uploadModal">
     <div class="modal-frame">
       <div class="modal-header">// FILE SYSTEM BUFFER ENTRY</div>
@@ -636,7 +637,6 @@
     </div>
   </div>
 
-  <!-- Folder Modal -->
   <div class="modal-backdrop" id="folderModal">
     <div class="modal-frame">
       <div class="modal-header">// INSTANTIATE CHILD DIRECTORY</div>
@@ -654,6 +654,7 @@
 
     let navHistory = [];
 
+    // Mobile Drawer Controls
     function toggleSidebar() {
       const sidebar = document.getElementById("terminalSidebar");
       const overlay = document.getElementById("sidebarOverlay");
@@ -715,6 +716,7 @@
         }
       });
 
+      // Auto-scroll breadcrumbs trail on mobile
       breadcrumbs.scrollLeft = breadcrumbs.scrollWidth;
     }
 
@@ -730,6 +732,7 @@
       const grid = document.getElementById("fileGrid");
       const folderList = document.getElementById("folderList");
 
+      // Tech Loop Loader using GIF telemetry
       grid.innerHTML = `
         <div class="empty-state">
           <img src="https://media.giphy.com/media/3o7bu3XilJ5BOiSGic/giphy.gif" class="cyber-loader" alt="Reading Matrix" />
