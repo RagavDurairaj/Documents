@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>CYBER-VAULT // HyperTech Interface</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,8 +11,8 @@
   <style>
     :root {
       --canvas: #030712;
-      --panel: rgba(11, 19, 43, 0.7);
-      --panel-border: rgba(0, 240, 255, 0.15);
+      --panel: rgba(11, 19, 43, 0.85);
+      --panel-border: rgba(0, 240, 255, 0.2);
       --cyan: #00f0ff;
       --cyan-dim: rgba(0, 240, 255, 0.12);
       --magenta: #ff0055;
@@ -22,7 +22,7 @@
       --wireframe: rgba(0, 240, 255, 0.03);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: 'JetBrains Mono', monospace;
       background: var(--canvas);
@@ -72,6 +72,16 @@
       box-shadow: 0 0 10px var(--cyan);
     }
 
+    /* Sidebar Drawer Backdrop for Mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 40;
+    }
+
     /* Left Control Sidebar */
     .terminal-sidebar {
       width: 320px;
@@ -82,16 +92,22 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
-      z-index: 10;
+      z-index: 50;
       flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .brand-hud {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
       padding-bottom: 20px;
       border-bottom: 1px dashed var(--panel-border);
+    }
+    .brand-hud-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .brand-hud img {
       width: 44px;
@@ -113,6 +129,15 @@
       color: var(--cyan);
       text-transform: uppercase;
       letter-spacing: 2px;
+    }
+
+    .close-drawer-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--cyan);
+      cursor: pointer;
+      padding: 4px;
     }
 
     .sys-actions {
@@ -179,7 +204,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 12px;
+      padding: 12px;
       border-radius: 4px;
       cursor: pointer;
       color: var(--text-muted);
@@ -187,7 +212,7 @@
       border-left: 2px solid transparent;
       transition: all 0.15s ease;
     }
-    .dir-pill:hover {
+    .dir-pill:hover, .dir-pill:active {
       background: var(--cyan-dim);
       border-left-color: var(--cyan);
       color: #fff;
@@ -201,6 +226,28 @@
       flex-direction: column;
       z-index: 1;
       height: 100vh;
+      width: 100%;
+    }
+
+    /* Mobile Header Bar */
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .mobile-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mobile-brand img {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      border: 1px solid var(--cyan);
     }
 
     .top-telemetry {
@@ -210,6 +257,7 @@
       margin-bottom: 24px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--panel-border);
+      gap: 12px;
     }
 
     .path-stack {
@@ -217,6 +265,9 @@
       align-items: center;
       gap: 8px;
       font-size: 0.82rem;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 4px;
     }
     .path-token {
       color: var(--cyan);
@@ -235,6 +286,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .icon-ctrl {
@@ -352,7 +404,7 @@
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 1px;
-      padding: 6px 0;
+      padding: 10px 0;
       border-radius: 2px;
       text-transform: uppercase;
       transition: 0.15s;
@@ -382,13 +434,14 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 100px 0;
+      padding: 80px 0;
       color: var(--text-muted);
       gap: 16px;
+      text-align: center;
     }
     .cyber-loader {
-      width: 70px;
-      height: 70px;
+      width: 60px;
+      height: 60px;
       border-radius: 12px;
       border: 1px solid var(--cyan);
       box-shadow: 0 0 20px var(--cyan-dim);
@@ -404,6 +457,7 @@
       align-items: center;
       justify-content: center;
       z-index: 200;
+      padding: 16px;
     }
     .modal-backdrop.active { display: flex; }
 
@@ -411,7 +465,8 @@
       background: #090e1a;
       border: 1px solid var(--cyan);
       border-radius: 4px;
-      width: 440px;
+      width: 100%;
+      max-width: 440px;
       padding: 24px;
       display: flex;
       flex-direction: column;
@@ -421,7 +476,7 @@
 
     .modal-header {
       font-family: 'Syne', sans-serif;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--cyan);
       letter-spacing: 1px;
@@ -429,7 +484,7 @@
 
     .hud-input {
       width: 100%;
-      padding: 10px 14px;
+      padding: 12px 14px;
       border-radius: 4px;
       border: 1px solid var(--panel-border);
       background: rgba(255, 255, 255, 0.02);
@@ -442,26 +497,94 @@
       border-color: var(--cyan);
       box-shadow: 0 0 10px var(--cyan-dim);
     }
+
+    /* ========================================================
+       RESPONSIVE MOBILE BREAKPOINTS (< 868px)
+       ======================================================== */
+    @media (max-width: 868px) {
+      .sidebar-overlay.active {
+        display: block;
+      }
+
+      .terminal-sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 82%;
+        max-width: 320px;
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
+      }
+
+      .terminal-sidebar.open {
+        transform: translateX(0);
+      }
+
+      .close-drawer-btn {
+        display: flex;
+      }
+
+      .mobile-header {
+        display: flex;
+      }
+
+      .viewport {
+        padding: 16px 14px;
+      }
+
+      .top-telemetry {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .ctrl-group {
+        justify-content: space-between;
+      }
+
+      .ctrl-group .icon-ctrl {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .stream-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .file-stream-container {
+        padding-right: 2px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="scanlines"></div>
 
-  <aside class="terminal-sidebar">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <aside class="terminal-sidebar" id="terminalSidebar">
     <div class="brand-hud">
-      <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
-      <div>
-        <div class="brand-title">CYBER//DOCS</div>
-        <div class="brand-status">NODE SECURE 2026.1</div>
+      <div class="brand-hud-left">
+        <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
+        <div>
+          <div class="brand-title">CYBER//DOCS</div>
+          <div class="brand-status">NODE SECURE 2026.1</div>
+        </div>
       </div>
+      <button class="close-drawer-btn" onclick="toggleSidebar()" aria-label="Close Terminal Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
 
     <div class="sys-actions">
-      <button class="btn-tech" onclick="openModal('uploadModal')">
+      <button class="btn-tech" onclick="openModal('uploadModal'); closeSidebar();">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         PUSH PROTOCOL
       </button>
-      <button class="btn-tech btn-tech-subtle" onclick="openModal('folderModal')">
+      <button class="btn-tech btn-tech-subtle" onclick="openModal('folderModal'); closeSidebar();">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         MAKE DIRECTORY
       </button>
@@ -472,8 +595,19 @@
   </aside>
 
   <main class="viewport">
+    <div class="mobile-header">
+      <div class="mobile-brand">
+        <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
+        <span style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: #fff;">CYBER//DOCS</span>
+      </div>
+      <button class="icon-ctrl" onclick="toggleSidebar()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        SYS MENU
+      </button>
+    </div>
+
     <header class="top-telemetry">
-      <nav class="path-stack" id="breadcrumbTrail"></nav>
+      <nav class="path-stack custom-scroll" id="breadcrumbTrail"></nav>
 
       <div class="ctrl-group">
         <button class="icon-ctrl" id="btnBack" onclick="navigateBack()" disabled>
@@ -482,6 +616,7 @@
         </button>
         <button class="icon-ctrl" onclick="refreshCurrentFolder()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          SYNC
         </button>
       </div>
     </header>
@@ -519,6 +654,21 @@
 
     let navHistory = [];
 
+    // Mobile Drawer Controls
+    function toggleSidebar() {
+      const sidebar = document.getElementById("terminalSidebar");
+      const overlay = document.getElementById("sidebarOverlay");
+      sidebar.classList.toggle("open");
+      overlay.classList.toggle("active");
+    }
+
+    function closeSidebar() {
+      const sidebar = document.getElementById("terminalSidebar");
+      const overlay = document.getElementById("sidebarOverlay");
+      sidebar.classList.remove("open");
+      overlay.classList.remove("active");
+    }
+
     async function navigateToFolder(id, name) {
       const existingIdx = navHistory.findIndex(f => f.id === id);
       if (existingIdx !== -1) {
@@ -526,6 +676,7 @@
       } else {
         navHistory.push({ id, name });
       }
+      closeSidebar();
       await renderFolder(id);
     }
 
@@ -564,6 +715,9 @@
           breadcrumbs.appendChild(sep);
         }
       });
+
+      // Auto-scroll breadcrumbs trail on mobile
+      breadcrumbs.scrollLeft = breadcrumbs.scrollWidth;
     }
 
     function getFileGlyph(mimeType) {
@@ -587,7 +741,10 @@
       `;
 
       try {
-        const res = await fetch(`${API_URL}?folderId=${folderId}`);
+        const res = await fetch(`${API_URL}?folderId=${folderId}`, {
+          method: "GET",
+          redirect: "follow"
+        });
         const data = await res.json();
 
         if (navHistory.length === 1) {
