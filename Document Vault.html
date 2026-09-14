@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CYBER-VAULT // HyperTech Interface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --canvas: #030712;
+      --panel: rgba(11, 19, 43, 0.7);
+      --panel-border: rgba(0, 240, 255, 0.15);
+      --cyan: #00f0ff;
+      --cyan-dim: rgba(0, 240, 255, 0.12);
+      --magenta: #ff0055;
+      --magenta-dim: rgba(255, 0, 85, 0.12);
+      --text: #f0fdfa;
+      --text-muted: #64748b;
+      --wireframe: rgba(0, 240, 255, 0.03);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--canvas);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Cybernetic Grid Backdrop */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(var(--wireframe) 1px, transparent 1px),
+        linear-gradient(90deg, var(--wireframe) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Noise/Scanline Overlays */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.6;
+    }
+
+    /* Ultra-Slim Custom Modern Scrollbar */
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(0, 240, 255, 0.02);
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--cyan) 0%, var(--magenta) 100%);
+      border-radius: 4px;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    /* Left Control Sidebar */
+    .terminal-sidebar {
+      width: 320px;
+      background: var(--panel);
+      border-right: 1px solid var(--panel-border);
+      backdrop-filter: blur(20px);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .brand-hud {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px dashed var(--panel-border);
+    }
+    .brand-hud img {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-dim);
+      object-fit: cover;
+    }
+    .brand-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+    .brand-status {
+      font-size: 0.65rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .sys-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn-tech {
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-tech:hover {
+      background: var(--cyan);
+      color: var(--canvas);
+      box-shadow: 0 0 20px var(--cyan);
+      transform: translateY(-1px);
+    }
+
+    .btn-tech-subtle {
+      border-color: var(--panel-border);
+      color: var(--text);
+    }
+    .btn-tech-subtle:hover {
+      background: var(--magenta);
+      border-color: var(--magenta);
+      color: #fff;
+      box-shadow: 0 0 20px var(--magenta);
+    }
+
+    .meta-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .folder-shelf {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      max-height: calc(100vh - 350px);
+      padding-right: 4px;
+    }
+    .dir-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      border-left: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .dir-pill:hover {
+      background: var(--cyan-dim);
+      border-left-color: var(--cyan);
+      color: #fff;
+    }
+
+    /* Main Operating Area */
+    .viewport {
+      flex: 1;
+      padding: 32px 40px;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      height: 100vh;
+    }
+
+    .top-telemetry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .path-stack {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+    }
+    .path-token {
+      color: var(--cyan);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .path-token.active {
+      color: #fff;
+      font-weight: 700;
+      pointer-events: none;
+    }
+    .path-div { color: var(--panel-border); }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-ctrl {
+      background: transparent;
+      border: 1px solid var(--panel-border);
+      color: var(--cyan);
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .icon-ctrl:hover:not(:disabled) {
+      border-color: var(--cyan);
+      background: var(--cyan-dim);
+      box-shadow: 0 0 10px var(--cyan-dim);
+    }
+    .icon-ctrl:disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+
+    /* Files Container with Fluid Scroll */
+    .file-stream-container {
+      flex: 1;
+      overflow-y: scroll;
+      padding-right: 12px;
+      padding-bottom: 40px;
+    }
+
+    .stream-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+    }
+
+    .data-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .data-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 6px;
+      border-top: 1px solid var(--cyan);
+      border-left: 1px solid var(--cyan);
+    }
+    .data-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 240, 255, 0.08);
+    }
+
+    .date-timestamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: var(--cyan);
+      background: var(--cyan-dim);
+      padding: 3px 8px;
+      border-radius: 2px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .type-glyph {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+
+    .file-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .file-specs {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .dock-actions {
+      display: flex;
+      gap: 8px;
+      border-top: 1px dashed var(--panel-border);
+      padding-top: 12px;
+    }
+
+    .dock-link {
+      flex: 1;
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 6px 0;
+      border-radius: 2px;
+      text-transform: uppercase;
+      transition: 0.15s;
+    }
+    .dock-view {
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+    }
+    .dock-view:hover {
+      border-color: var(--text);
+      color: #fff;
+    }
+    .dock-download {
+      background: var(--cyan-dim);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+    }
+    .dock-download:hover {
+      background: var(--cyan);
+      color: var(--canvas);
+    }
+
+    /* Diagnostics Loading / Empty */
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 0;
+      color: var(--text-muted);
+      gap: 16px;
+    }
+    .cyber-loader {
+      width: 70px;
+      height: 70px;
+      border-radius: 12px;
+      border: 1px solid var(--cyan);
+      box-shadow: 0 0 20px var(--cyan-dim);
+    }
+
+    /* Overlay Modals */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(12px);
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .modal-backdrop.active { display: flex; }
+
+    .modal-frame {
+      background: #090e1a;
+      border: 1px solid var(--cyan);
+      border-radius: 4px;
+      width: 440px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+    }
+
+    .modal-header {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 1px;
+    }
+
+    .hud-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .hud-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <aside class="terminal-sidebar">
+    <div class="brand-hud">
+      <img src="https://media.giphy.com/media/xTiTnf9SCIVJJPoY6c/giphy.gif" alt="System Node Core" />
+      <div>
+        <div class="brand-title">CYBER//DOCS</div>
+        <div class="brand-status">NODE SECURE 2026.1</div>
+      </div>
+    </div>
+
+    <div class="sys-actions">
+      <button class="btn-tech" onclick="openModal('uploadModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        PUSH PROTOCOL
+      </button>
+      <button class="btn-tech btn-tech-subtle" onclick="openModal('folderModal')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        MAKE DIRECTORY
+      </button>
+    </div>
+
+    <div class="meta-label">// DIRECTORY MAPPING</div>
+    <div id="folderList" class="folder-shelf custom-scroll"></div>
+  </aside>
+
+  <main class="viewport">
+    <header class="top-telemetry">
+      <nav class="path-stack" id="breadcrumbTrail"></nav>
+
+      <div class="ctrl-group">
+        <button class="icon-ctrl" id="btnBack" onclick="navigateBack()" disabled>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          PARENT DIR
+        </button>
+        <button class="icon-ctrl" onclick="refreshCurrentFolder()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="file-stream-container custom-scroll">
+      <div id="fileGrid" class="stream-grid"></div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="uploadModal">
+    <div class="modal-frame">
+      <div class="modal-header">// FILE SYSTEM BUFFER ENTRY</div>
+      <input type="file" id="fileInput" class="hud-input" />
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn-tech btn-tech-subtle" onclick="closeModal('uploadModal')">ABORT</button>
+        <button class="btn-tech" id="uploadBtn" onclick="handleUpload()">TRANSMIT</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="folderModal">
+    <div class="modal-frame">
+      <div class="modal-header">// INSTANTIATE CHILD DIRECTORY</div>
+      <input type="text" id="folderNameInput" class="hud-input" placeholder="Enter identifier name" />
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn-tech btn-tech-subtle" onclick="closeModal('folderModal')">ABORT</button>
+        <button class="btn-tech" id="createFolderBtn" onclick="handleCreateFolder()">INITIALIZE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyY2aNoWCnIUvfwY6IguK8e6jcYIdVTUIKptWEb8tqqlUqyF2OzR6MePHJImij6d0Fe0A/exec";
+    const ROOT_FOLDER_ID = "1rfKSWuuv0oaE3TW5YkuWVW3BJ8hU4j2H";
+
+    let navHistory = [];
+
+    async function navigateToFolder(id, name) {
+      const existingIdx = navHistory.findIndex(f => f.id === id);
+      if (existingIdx !== -1) {
+        navHistory = navHistory.slice(0, existingIdx + 1);
+      } else {
+        navHistory.push({ id, name });
+      }
+      await renderFolder(id);
+    }
+
+    async function navigateBack() {
+      if (navHistory.length > 1) {
+        navHistory.pop();
+        const prev = navHistory[navHistory.length - 1];
+        await renderFolder(prev.id);
+      }
+    }
+
+    function refreshCurrentFolder() {
+      if (navHistory.length > 0) {
+        renderFolder(navHistory[navHistory.length - 1].id);
+      }
+    }
+
+    function updateNavUI() {
+      const btnBack = document.getElementById("btnBack");
+      btnBack.disabled = navHistory.length <= 1;
+
+      const breadcrumbs = document.getElementById("breadcrumbTrail");
+      breadcrumbs.innerHTML = "";
+
+      navHistory.forEach((item, index) => {
+        const span = document.createElement("span");
+        span.className = `path-token ${index === navHistory.length - 1 ? 'active' : ''}`;
+        span.innerText = item.name;
+        span.onclick = () => navigateToFolder(item.id, item.name);
+        breadcrumbs.appendChild(span);
+
+        if (index < navHistory.length - 1) {
+          const sep = document.createElement("span");
+          sep.className = "path-div";
+          sep.innerText = "::";
+          breadcrumbs.appendChild(sep);
+        }
+      });
+    }
+
+    function getFileGlyph(mimeType) {
+      if (mimeType.includes("pdf")) return "📄";
+      if (mimeType.includes("image")) return "🛰️";
+      if (mimeType.includes("word") || mimeType.includes("document")) return "📋";
+      if (mimeType.includes("sheet") || mimeType.includes("excel")) return "📊";
+      return "💾";
+    }
+
+    async function renderFolder(folderId) {
+      const grid = document.getElementById("fileGrid");
+      const folderList = document.getElementById("folderList");
+
+      // Tech Loop Loader using GIF telemetry
+      grid.innerHTML = `
+        <div class="empty-state">
+          <img src="https://media.giphy.com/media/3o7bu3XilJ5BOiSGic/giphy.gif" class="cyber-loader" alt="Reading Matrix" />
+          <p style="letter-spacing: 2px; font-size: 0.75rem; color: var(--cyan);">[ QUERYING SECTOR BLOCKS... ]</p>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(`${API_URL}?folderId=${folderId}`);
+        const data = await res.json();
+
+        if (navHistory.length === 1) {
+          navHistory[0].name = data.currentFolder.name || "ROOT";
+        }
+        updateNavUI();
+
+        // Render Folders
+        folderList.innerHTML = "";
+        if (data.folders.length === 0) {
+          folderList.innerHTML = `<span style="font-size: 0.75rem; color: var(--text-muted); padding-left: 10px;">NULL SUBDIRECTORIES</span>`;
+        } else {
+          data.folders.forEach(f => {
+            const div = document.createElement("div");
+            div.className = "dir-pill";
+            div.innerHTML = `<span>⚡</span> <span>${f.name}</span>`;
+            div.onclick = () => navigateToFolder(f.id, f.name);
+            folderList.appendChild(div);
+          });
+        }
+
+        // Render Files
+        grid.innerHTML = "";
+        if (data.files.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <span style="font-size: 2rem;">∅</span>
+              <p style="letter-spacing: 1px; font-size: 0.8rem;">NO PAYLOADS LOCATED IN BUFFER</p>
+            </div>
+          `;
+          return;
+        }
+
+        data.files.forEach(file => {
+          const card = document.createElement("div");
+          card.className = "data-card";
+          card.innerHTML = `
+            <div>
+              <div class="date-timestamp">
+                <span>REC:</span>
+                <span>${file.calendarDate ? file.calendarDate.substring(0, 10) : 'TIMESTAMP_MISSING'}</span>
+              </div>
+              <div class="type-glyph">${getFileGlyph(file.mimeType)}</div>
+              <div class="file-label">${file.name}</div>
+              <div class="file-specs">${file.size} // ${file.mimeType.split('/').pop().toUpperCase()}</div>
+            </div>
+            <div class="dock-actions">
+              <a class="dock-link dock-view" href="${file.previewUrl}" target="_blank">INSPECT</a>
+              <a class="dock-link dock-download" href="${file.downloadUrl}" target="_blank">PULL</a>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+      } catch (err) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <p style="color: var(--magenta);">NETWORK INTERRUPT: FAILED TO PARSE ENDPOINT BUFFER.</p>
+          </div>
+        `;
+      }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add("active"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("active"); }
+
+    async function handleUpload() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return;
+
+      const btn = document.getElementById("uploadBtn");
+      btn.innerText = "STREAMING...";
+      btn.disabled = true;
+
+      const currentTargetFolderId = navHistory[navHistory.length - 1].id;
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const base64Data = reader.result.split(',')[1];
+        await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "upload",
+            folderId: currentTargetFolderId,
+            fileName: file.name,
+            mimeType: file.type || "application/octet-stream",
+            fileData: base64Data
+          })
+        });
+
+        btn.innerText = "TRANSMIT";
+        btn.disabled = false;
+        closeModal("uploadModal");
+        document.getElementById("fileInput").value = "";
+        renderFolder(currentTargetFolderId);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function handleCreateFolder() {
+      const name = document.getElementById("folderNameInput").value.trim();
+      if (!name) return;
+
+      const btn = document.getElementById("createFolderBtn");
+      btn.innerText = "WRITING...";
+      btn.disabled = true;
+
+      const currentTargetFolderId = navHistory[navHistory.length - 1].id;
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "createFolder",
+          folderId: currentTargetFolderId,
+          folderName: name
+        })
+      });
+
+      btn.innerText = "INITIALIZE";
+      btn.disabled = false;
+      document.getElementById("folderNameInput").value = "";
+      closeModal("folderModal");
+      renderFolder(currentTargetFolderId);
+    }
+
+    // Initialize Root
+    navHistory.push({ id: ROOT_FOLDER_ID, name: "ROOT" });
+    renderFolder(ROOT_FOLDER_ID);
+  </script>
+</body>
+</html>
